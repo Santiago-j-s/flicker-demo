@@ -6,13 +6,13 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogContent,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { doSomething } from "../actions";
-import { useActionState, useEffect, useMemo, useState } from "react";
+import { useActionState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, RefreshCcw, Sparkles } from "lucide-react";
 import { Description } from "./components/Description";
+import { useRouter } from "next/navigation";
 
 interface BaseFinalState {
   state: "success" | "error";
@@ -83,9 +83,42 @@ export function Modal() {
                 </>
               )}
             </Button>
+            <RefreshButton />
           </form>
         </DialogHeader>
       </DialogContent>
     </Dialog>
+  );
+}
+
+export function RefreshButton() {
+  const router = useRouter();
+
+  const [isPending, startTransition] = useTransition();
+
+  const handleRefresh = () => {
+    startTransition(() => {
+      router.refresh();
+    });
+  };
+
+  return (
+    <Button
+      onClick={handleRefresh}
+      disabled={isPending}
+      className="flex items-center gap-2"
+    >
+      {isPending ? (
+        <>
+          <Loader2 className="animate-spin mr-2 h-4 w-4 inline-block" />
+          <span>Refreshing...</span>
+        </>
+      ) : (
+        <>
+          <RefreshCcw className="w-4 h-4" />
+          <span>Refresh</span>
+        </>
+      )}
+    </Button>
   );
 }
