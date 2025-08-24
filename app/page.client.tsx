@@ -108,9 +108,6 @@ export function Modal() {
     state: "idle",
   });
 
-  const [, setLastFinishedAt] = useState<Date | null>(null);
-  const [description, setDescription] = useState<string | null>(null);
-
   return (
     <Dialog>
       <DialogTrigger asChild>
