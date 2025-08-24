@@ -10,7 +10,7 @@ export async function doSomething(formData: FormData) {
   await wait(2000);
   revalidatePath("/");
 
-  let value = await getValueFromDatabase();
+  const value = await getValueFromDatabase();
 
   await setValueInDatabase(value + 1);
 
