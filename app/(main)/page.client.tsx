@@ -43,7 +43,7 @@ async function clientAction(
   return doSomething(formData);
 }
 
-export function Modal() {
+export function Modal({ value }: { value: number }) {
   const [state, formAction, isPending] = useActionState(clientAction, {
     state: "idle",
   });
@@ -61,6 +61,9 @@ export function Modal() {
             <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
               Dialog Title
             </DialogTitle>
+            <p className="text-sm text-gray-500">
+              Value from database: {value}
+            </p>
             <Description state={state} />
             <Button
               type="submit"

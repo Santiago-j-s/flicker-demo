@@ -1,4 +1,5 @@
 "use server";
+import { getValueFromDatabase, setValueInDatabase } from "@/services/upstash";
 import { revalidatePath } from "next/cache";
 
 async function wait(ms: number) {
@@ -8,6 +9,10 @@ async function wait(ms: number) {
 export async function doSomething(formData: FormData) {
   await wait(2000);
   revalidatePath("/");
+
+  let value = await getValueFromDatabase();
+
+  await setValueInDatabase(value + 1);
 
   return { state: "success", message: "Something done" } as const;
 }
