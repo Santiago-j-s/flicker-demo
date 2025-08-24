@@ -9,25 +9,22 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { doSomething } from "./actions";
-import { useActionState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, Sparkles } from "lucide-react";
 
 interface BaseFinalState {
   state: "success" | "error";
-  finishedAt: Date;
 }
 
 interface ErrorState extends BaseFinalState {
   state: "error";
   error: string;
-  finishedAt: Date;
 }
 
 interface SuccessState extends BaseFinalState {
   state: "success";
   message: string;
-  finishedAt: Date;
 }
 
 type FinalState = ErrorState | SuccessState;
@@ -42,19 +39,77 @@ async function clientAction(
   _prevState: DoSomethingState,
   formData: FormData
 ): Promise<DoSomethingState> {
-  const result = await doSomething(formData);
+  return doSomething(formData);
+}
 
-  return {
-    state: result.state,
-    message: result.message,
-    finishedAt: new Date(),
-  };
+const RESET_DESCRIPTION_AFTER = 5;
+
+function Description({ state }: { state: DoSomethingState }) {
+  const descriptionState = useMemo(() => {
+    if (state.state === "success" || state.state === "error") {
+      return { state: "visible", lastFinishedAt: new Date() } as const;
+    }
+
+    return { state: "hidden", lastFinishedAt: null } as const;
+  }, [state]);
+
+  const [timePassed, setTimePassed] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+
+      if (descriptionState.lastFinishedAt) {
+        setTimePassed(
+          Math.floor(
+            (now.getTime() - descriptionState.lastFinishedAt.getTime()) / 1000
+          )
+        );
+      } else {
+        setTimePassed(0);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [descriptionState]);
+
+  if (
+    descriptionState.state === "hidden" ||
+    timePassed > RESET_DESCRIPTION_AFTER
+  ) {
+    return null;
+  }
+
+  const time = (
+    <span className="text-sm text-gray-500">
+      {RESET_DESCRIPTION_AFTER - timePassed} seconds left
+    </span>
+  );
+
+  if (state.state === "success") {
+    return (
+      <DialogDescription className="mb-2 text-base font-medium text-green-600 dark:text-green-400">
+        Action completed successfully! Everything went as planned. {time}
+      </DialogDescription>
+    );
+  }
+
+  if (state.state === "error") {
+    return (
+      <DialogDescription className="mb-2 text-base font-medium text-red-600 dark:text-red-400">
+        Oops! Something went wrong: {state.error ?? "Unknown error."} {time}
+      </DialogDescription>
+    );
+  }
 }
 
 export function Modal() {
   const [state, formAction, isPending] = useActionState(clientAction, {
     state: "idle",
   });
+
+  const [, setLastFinishedAt] = useState<Date | null>(null);
+  const [description, setDescription] = useState<string | null>(null);
 
   return (
     <Dialog>
@@ -69,19 +124,7 @@ export function Modal() {
             <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
               Dialog Title
             </DialogTitle>
-            {state.state === "success" ? (
-              <DialogDescription className="mb-2 text-base font-medium text-green-600 dark:text-green-400">
-                Action completed successfully! Everything went as planned.
-              </DialogDescription>
-            ) : state.state === "error" ? (
-              <DialogDescription className="mb-2 text-base font-medium text-red-600 dark:text-red-400">
-                Oops! Something went wrong: {state.error ?? "Unknown error."}
-              </DialogDescription>
-            ) : (
-              <DialogDescription className="mb-2 text-base font-medium text-gray-600 dark:text-gray-400">
-                Working magic for you...
-              </DialogDescription>
-            )}
+            <Description state={state} />
             <Button
               type="submit"
               disabled={isPending}
