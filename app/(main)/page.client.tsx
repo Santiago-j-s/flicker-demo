@@ -59,11 +59,8 @@ export function Modal({ value }: { value: number }) {
         <DialogHeader className="mb-4">
           <form action={formAction} className="flex flex-col gap-6">
             <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Dialog Title
-            </DialogTitle>
-            <p className="text-sm text-gray-500">
               Value from database: {value}
-            </p>
+            </DialogTitle>
             <Description state={state} />
             <Button
               type="submit"
